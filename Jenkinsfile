@@ -14,7 +14,13 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t $IMAGE:$BUILD_NUMBER .'
+       sh '''
+          set -e
+          for svc in cast-service movie-service; do
+            echo ">> Building $svc"
+            docker build -f "$svc/Dockerfile" -t "$IMAGE-$svc:$BUILD_NUMBER" "$svc"
+          done
+        '''
       }
     }
 
