@@ -12,9 +12,9 @@ pipeline {
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Build Docker Images') {
       steps {
-       sh '''
+        sh '''
           set -e
           for svc in cast-service movie-service; do
             echo ">> Building $svc"
@@ -24,15 +24,24 @@ pipeline {
       }
     }
 
-    stage('Push Docker Image') {
+    stage('Push Docker Images') {
       steps {
         withCredentials([usernamePassword(
           credentialsId: 'dockerhub-user',
           usernameVariable: 'USER',
           passwordVariable: 'PASS'
         )]) {
-          sh 'echo "$PASS" | docker login -u "$USER" --password-stdin'
-          sh 'docker push $IMAGE:$BUILD_NUMBER'
+          sh '''
+            set -e
+            echo "$PASS" | docker login -u "$USER" --password-stdin
+            for svc in cast-service movie-service; do
+              echo ">> Pushing $IMAGE-$svc:$BUILD_NUMBER"
+              docker push "$IMAGE-$svc:$BUILD_NUMBER"
+              # Optional: also tag & push :latest
+              # docker tag "$IMAGE-$svc:$BUILD_NUMBER" "$IMAGE-$svc:latest"
+              # docker push "$IMAGE-$svc:latest"
+            done
+          '''
         }
       }
     }
