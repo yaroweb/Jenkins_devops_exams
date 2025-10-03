@@ -72,4 +72,13 @@ pipeline {
         allOf {
           branch 'master'
           expression { fileExists('k8s/prod') }
+        }
+      }
+      steps {
+        input message: 'Deploy to Production?'
+        sh 'kubectl apply -f k8s/prod/'
+      }
+    }
+  }
+}
 
